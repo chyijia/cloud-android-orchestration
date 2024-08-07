@@ -66,3 +66,11 @@ func (s *GCPSecretManager) OAuth2ClientID() string {
 func (s *GCPSecretManager) OAuth2ClientSecret() string {
 	return s.secrets.ClientSecret
 }
+
+func (s *GCPSecretManager) ServicePrivateKey() string {
+	return ""
+}
+
+func (s *GCPSecretManager) ServiceClientEmail() string {
+	return ""
+}

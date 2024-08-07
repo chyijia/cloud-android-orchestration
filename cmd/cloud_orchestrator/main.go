@@ -108,6 +108,18 @@ func LoadOAuth2Config(config *config.Config, sm secrets.SecretManager) *appOAuth
 	return oauth2Helper
 }
 
+func LoadServiceAuthHelper(config *config.Config, sm secrets.SecretManager) *appOAuth2.ServiceAuthHelper {
+	var serviceAuthHelper *appOAuth2.ServiceAuthHelper
+	switch config.AccountManager.OAuth2.Provider {
+	case appOAuth2.GoogleOAuth2Provider:
+		serviceAuthHelper = appOAuth2.NewServiceAccountAuthHelper(sm)
+	default:
+		log.Fatal("Unknown oauth2 provider: ", config.AccountManager.OAuth2.Provider)
+	}
+
+	return serviceAuthHelper
+}
+
 func LoadAccountManager(config *config.Config) accounts.Manager {
 	var am accounts.Manager
 	switch config.AccountManager.Type {
@@ -176,10 +188,11 @@ func main() {
 	instanceManager := LoadInstanceManager(config)
 	secretManager := LoadSecretManager(config)
 	oauth2Helper := LoadOAuth2Config(config, secretManager)
+	serviceAuthHelper := LoadServiceAuthHelper(config, secretManager)
 	accountManager := LoadAccountManager(config)
 	encryptionService := LoadEncryptionService(config)
 	dbService := LoadDatabaseService(config)
-	controller := app.NewApp(instanceManager, accountManager, oauth2Helper,
+	controller := app.NewApp(instanceManager, accountManager, oauth2Helper, serviceAuthHelper,
 		encryptionService, dbService, config.WebStaticFilesPath, config.CORSAllowedOrigins, config.WebRTC, config)
 
 	iface := ChooseNetworkInterface(config)

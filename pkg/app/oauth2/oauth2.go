@@ -24,6 +24,7 @@ import (
 
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
+	"golang.org/x/oauth2/jwt"
 )
 
 type OAuth2Config struct {
@@ -53,6 +54,29 @@ func NewGoogleOAuth2Helper(redirectURL string, sm secrets.SecretManager) *Helper
 			},
 			RedirectURL: redirectURL,
 			Endpoint:    google.Endpoint,
+		},
+		Revoke: RevokeGoogleOAuth2Token,
+	}
+}
+
+type ServiceAuthHelper struct {
+	jwt.Config
+	Revoke func(*oauth2.Token) error
+}
+
+func NewServiceAccountAuthHelper(sm secrets.SecretManager) *ServiceAuthHelper {
+	if len(sm.ServiceClientEmail()) == 0 || len(sm.ServicePrivateKey()) == 0 {
+		return nil
+	}
+
+	return &ServiceAuthHelper{
+		Config: jwt.Config{
+			Email:      sm.ServiceClientEmail(),
+			PrivateKey: []byte(sm.ServicePrivateKey()),
+			Scopes: []string{
+				"https://www.googleapis.com/auth/androidbuild.internal",
+			},
+			TokenURL: google.JWTTokenURL,
 		},
 		Revoke: RevokeGoogleOAuth2Token,
 	}

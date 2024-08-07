@@ -30,6 +30,8 @@ type UnixSMConfig struct {
 type FromFileSecretManager struct {
 	ClientID     string `json:"client_id"`
 	ClientSecret string `json:"client_secret"`
+	PrivateKey   string `json:"private_key"`
+	ClientEmail  string `json:"client_email"`
 }
 
 func NewFromFileSecretManager(path string) (*FromFileSecretManager, error) {
@@ -51,4 +53,12 @@ func (sm *FromFileSecretManager) OAuth2ClientID() string {
 
 func (sm *FromFileSecretManager) OAuth2ClientSecret() string {
 	return sm.ClientSecret
+}
+
+func (sm *FromFileSecretManager) ServicePrivateKey() string {
+	return sm.PrivateKey
+}
+
+func (sm *FromFileSecretManager) ServiceClientEmail() string {
+	return sm.ClientEmail
 }

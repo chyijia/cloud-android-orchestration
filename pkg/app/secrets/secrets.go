@@ -17,6 +17,8 @@ package secrets
 type SecretManager interface {
 	OAuth2ClientID() string
 	OAuth2ClientSecret() string
+	ServicePrivateKey() string
+	ServiceClientEmail() string
 }
 
 type SMType string

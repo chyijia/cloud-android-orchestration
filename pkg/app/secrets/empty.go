@@ -30,3 +30,11 @@ func (sm *EmptySecretManager) OAuth2ClientID() string {
 func (sm *EmptySecretManager) OAuth2ClientSecret() string {
 	return ""
 }
+
+func (sm *EmptySecretManager) ServicePrivateKey() string {
+	return ""
+}
+
+func (sm *EmptySecretManager) ServiceClientEmail() string {
+	return ""
+}
