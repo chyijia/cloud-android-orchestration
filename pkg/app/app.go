@@ -54,6 +54,7 @@ type App struct {
 	instanceManager          instances.Manager
 	accountManager           accounts.Manager
 	oauth2Helper             *appOAuth2.Helper
+	serviceAuthHelper        *appOAuth2.ServiceAuthHelper
 	encryptionService        encryption.Service
 	databaseService          database.Service
 	connectorStaticFilesPath string
@@ -66,13 +67,14 @@ func NewApp(
 	im instances.Manager,
 	am accounts.Manager,
 	oc *appOAuth2.Helper,
+	sa *appOAuth2.ServiceAuthHelper,
 	es encryption.Service,
 	dbs database.Service,
 	webStaticFilesPath string,
 	corsAllowedOrigins []string,
 	webRTCConfig config.WebRTCConfig,
 	config *config.Config) *App {
-	return &App{im, am, oc, es, dbs, webStaticFilesPath, corsAllowedOrigins, buildInfraCfg(webRTCConfig.STUNServers), config}
+	return &App{im, am, oc, sa, es, dbs, webStaticFilesPath, corsAllowedOrigins, buildInfraCfg(webRTCConfig.STUNServers), config}
 }
 
 func (c *App) AddCorsHeaderIfNeeded(w http.ResponseWriter, r *http.Request) {
@@ -251,6 +253,21 @@ func (c *App) waitOperation(w http.ResponseWriter, r *http.Request, user account
 }
 
 func (c *App) AuthHandler(w http.ResponseWriter, r *http.Request) error {
+	if c.serviceAuthHelper != nil {
+		tk, err := c.serviceAuthHelper.TokenSource(context.Background()).Token()
+		if err != nil {
+			return err
+		}
+		user, err := c.accountManager.UserFromRequest(r)
+		if err != nil {
+			return err
+		}
+		if err := c.storeUserCredentials(user, tk); err != nil {
+			return err
+		}
+		return nil
+	}
+
 	state := randomHexString()
 	s := session.Session{
 		OAuth2State: state,
@@ -541,7 +558,6 @@ type HTTPHandler func(http.ResponseWriter, *http.Request) error
 // Intercept errors returned by the HTTPHandler and transform them into HTTP
 // error responses
 func (h HTTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	log.Println(r.Method, " ", r.URL, " ", r.RemoteAddr)
 	if err := h(w, r); err != nil {
 		log.Println("Error: ", err)
 		var e *apperr.AppError
