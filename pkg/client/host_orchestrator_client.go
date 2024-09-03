@@ -223,8 +223,8 @@ func (c *HostOrchestratorServiceImpl) createPolledConnection(device string) (*op
 func (c *HostOrchestratorServiceImpl) WaitForOperation(name string, res any) error {
 	retryOpts := RetryOptions{
 		StatusCodes: []int{http.StatusServiceUnavailable, http.StatusGatewayTimeout},
-		RetryDelay:  5 * time.Second,
-		MaxWait:     2 * time.Minute,
+		RetryDelay:  10 * time.Second,
+		MaxWait:     10 * time.Minute,
 	}
 	return c.waitForOperation(name, res, retryOpts)
 }
@@ -271,8 +271,8 @@ func (c *HostOrchestratorServiceImpl) CreateCVD(req *hoapi.CreateCVDRequest, cre
 	res := &hoapi.CreateCVDResponse{}
 	retryOpts := RetryOptions{
 		StatusCodes: []int{http.StatusServiceUnavailable, http.StatusGatewayTimeout},
-		RetryDelay:  30 * time.Second,
-		MaxWait:     10 * time.Minute,
+		RetryDelay:  90 * time.Second,
+		MaxWait:     30 * time.Minute,
 	}
 	if err := c.waitForOperation(op.Name, &res, retryOpts); err != nil {
 		return nil, err
